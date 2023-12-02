@@ -5,6 +5,7 @@ use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
 use nom::character::complete::space1;
+use nom::multi::separated_list1;
 use nom::sequence::tuple;
 use nom::IResult;
 use nom::Parser;
@@ -17,9 +18,26 @@ enum Color {
 }
 
 #[derive(Debug, PartialEq)]
+struct Reveal {
+    red: u32,
+    green: u32,
+    blue: u32,
+}
+
+impl Reveal {
+    pub fn new() -> Reveal {
+        Reveal {
+            red: 0,
+            green: 0,
+            blue: 0,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
 struct Game {
     id: Option<u32>,
-    reveals: Vec<Color>,
+    reveals: Vec<Vec<Color>>,
 }
 
 impl Game {
@@ -29,6 +47,10 @@ impl Game {
             reveals: vec![],
         }
     }
+
+    pub fn max_red(&self) -> u32 {
+        0
+    }
 }
 
 fn main() {
@@ -37,7 +59,13 @@ fn main() {
     dbg!(output);
 }
 
-fn game_num(source: &str) -> IResult<&str, u32> {
+// fn load_game(source: &str) -> Game {
+//     let g = Game::new();
+//     g.id = game_num(source);.unwrap().1;
+//     g
+// }
+
+fn parse_game_num(source: &str) -> IResult<&str, u32> {
     let (source, _) = tag("Game ")(source)?;
     let (source, results) = digit1(source)?;
     let the_num: u32 = results.parse().unwrap();
@@ -52,32 +80,16 @@ fn parse_color(source: &str) -> IResult<&str, Color> {
         tag("green").map(|c| Color::Green(num.parse().unwrap())),
         tag("blue").map(|c| Color::Blue(num.parse().unwrap())),
     ))(source)?;
-
-    // let (source, result) = alt((
-    //     tuple((digit1, space1, tag("red"))).map(|(a, b, c)| Color::Green(2)),
-    //     tuple((digit1, space1, tag("green")))
-    //         .map(|(a, b, c)| Color::Green((a as &str).parse::<u32>().unwrap())),
-    //     tuple((digit1, space1, tag("blue"))).map(|(a, b, c)| Color::Green(2)),
-    // ))(source)?;
-
     Ok((source, result))
 }
 
-// fn parse_game(source: &str) -> IResult<&str, Game> {
-//     let mut g = Game::new();
-//     let (source, game_num) = game_num(source)?;
-//     dbg!(&source);
-//     g.id = Some(game_num);
-//     g.reveals = vec![(4, 0, 3), (1, 2, 6), (0, 2, 0)];
-//     Ok((source, g))
-// }
+fn parse_colors(source: &str) -> IResult<&str, Vec<Color>> {
+    separated_list1(tag(", "), parse_color)(source)
+}
 
-// fn parse_reveal(source: &str) -> IResult<&str, (u32, u32, u32)> {
-//     let response = (0, 0, 0);
-//     let (source, resutls) =
-//         tuple((digit1, space1, alt((tag("red"), tag("green"), tag("blue")))))(source)?;
-//     Ok((source, (4, 2, 3)))
-// }
+fn parse_reveals(source: &str) -> IResult<&str, Vec<Vec<Color>>> {
+    separated_list1(tag("; "), parse_colors)(source)
+}
 
 fn solve(source: &str) -> u32 {
     8
@@ -94,6 +106,31 @@ mod tests {
         let right = parse_color(input);
         assert_eq!(left, right.unwrap().1);
     }
+
+    #[test]
+    fn parse_colors_test() {
+        let input = "4 red, 5 blue";
+        let left = vec![Color::Red(4), Color::Blue(5)];
+        let right = parse_colors(input);
+        assert_eq!(left, right.unwrap().1);
+    }
+
+    #[test]
+    fn parse_reveals_test() {
+        let input = "1 blue, 3 red; 4 green";
+        let left = vec![vec![Color::Blue(1), Color::Red(3)], vec![Color::Green(4)]];
+        let right = parse_reveals(input);
+        assert_eq!(left, right.unwrap().1);
+    }
+
+    // #[test]
+    // fn max_red_test() {
+    //     let input = "Game 1: 1 blue, 3 red; 4 green";
+    //     let left = 3;
+    //     let g = load_game(input);
+    //     let right = g.max_red();
+    //     assert_eq!(left, right);
+    // }
 
     // #[test]
     // fn test_game_data() {
