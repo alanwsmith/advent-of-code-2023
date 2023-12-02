@@ -1,4 +1,3 @@
-#![allow(unused_imports)]
 use nom::bytes::complete::is_not;
 use nom::character::complete::newline;
 use nom::character::complete::one_of;
@@ -7,13 +6,11 @@ use nom::multi::many0;
 use nom::multi::separated_list0;
 use nom::sequence::pair;
 use nom::IResult;
-use nom::Parser;
 
 fn main() {
     let input = include_str!("./input1.txt");
     let output = solve(input);
     dbg!(output);
-    println!("Hello part1");
 }
 
 fn solve(source: &str) -> u32 {
