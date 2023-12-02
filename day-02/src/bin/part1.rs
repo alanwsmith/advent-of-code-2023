@@ -132,6 +132,10 @@ fn parse_game(source: &str) -> IResult<&str, Game> {
     Ok((source, g))
 }
 
+fn parse_games(source: &str) -> IResult<&str, Vec<Game>> {
+    separated_list1(tag("\n"), parse_game)(source)
+}
+
 fn parse_reveals(source: &str) -> IResult<&str, Vec<Vec<Color>>> {
     separated_list1(tag("; "), parse_colors)(source)
 }
@@ -192,40 +196,33 @@ mod tests {
     }
 
     #[test]
+    fn parse_games_test() {
+        let input = "Game 1: 3 blue
+Game 2: 1 blue";
+        let left = Ok((
+            "",
+            vec![
+                Game {
+                    id: Some(1),
+                    reveals: vec![vec![Color::Blue(3)]],
+                },
+                Game {
+                    id: Some(2),
+                    reveals: vec![vec![Color::Blue(1)]],
+                },
+            ],
+        ));
+        let right = parse_games(input);
+        assert_eq!(left, right);
+    }
+
+    #[test]
     fn parse_reveals_test() {
         let input = "1 blue, 3 red; 4 green";
         let left = vec![vec![Color::Blue(1), Color::Red(3)], vec![Color::Green(4)]];
         let right = parse_reveals(input);
         assert_eq!(left, right.unwrap().1);
     }
-
-    // #[test]
-    // fn max_red_test() {
-    //     let input = "Game 1: 1 blue, 3 red; 4 green";
-    //     let left = 3;
-    //     let g = load_game(input);
-    //     let right = g.max_red();
-    //     assert_eq!(left, right);
-    // }
-
-    // #[test]
-    // fn test_game_data() {
-    //     let input = "Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green";
-    //     let left = Game {
-    //         id: Some(1),
-    //         reveals: vec![(4, 0, 3), (1, 2, 6), (0, 2, 0)],
-    //     };
-    //     let right = parse_game(input);
-    //     assert_eq!(left, right.unwrap().1);
-    // }
-
-    // #[test]
-    // fn test_reveal_alfa() {
-    //     let input = "3 blue, 4 red, 2 green";
-    //     let left = (4, 2, 3);
-    //     let right = parse_reveal(input);
-    //     assert_eq!(left, right.unwrap().1);
-    // }
 
     #[test]
     fn integration_test() {
