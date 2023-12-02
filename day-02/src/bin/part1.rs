@@ -1,6 +1,3 @@
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(dead_code)]
 use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
@@ -39,7 +36,7 @@ impl Game {
             .iter()
             .filter_map(|reveal| {
                 reveal.iter().find(|e| match e {
-                    Color::Red(v) => true,
+                    Color::Red(_) => true,
                     _ => false,
                 })
             })
@@ -59,7 +56,7 @@ impl Game {
             .iter()
             .filter_map(|reveal| {
                 reveal.iter().find(|e| match e {
-                    Color::Green(v) => true,
+                    Color::Green(_) => true,
                     _ => false,
                 })
             })
@@ -79,7 +76,7 @@ impl Game {
             .iter()
             .filter_map(|reveal| {
                 reveal.iter().find(|e| match e {
-                    Color::Blue(v) => true,
+                    Color::Blue(_) => true,
                     _ => false,
                 })
             })
@@ -102,9 +99,9 @@ fn parse_color(source: &str) -> IResult<&str, Color> {
     let (source, num) = digit1(source)?;
     let (source, _) = space1(source)?;
     let (source, result) = alt((
-        tag("red").map(|c| Color::Red(num.parse().unwrap())),
-        tag("green").map(|c| Color::Green(num.parse().unwrap())),
-        tag("blue").map(|c| Color::Blue(num.parse().unwrap())),
+        tag("red").map(|_| Color::Red(num.parse().unwrap())),
+        tag("green").map(|_| Color::Green(num.parse().unwrap())),
+        tag("blue").map(|_| Color::Blue(num.parse().unwrap())),
     ))(source)?;
     Ok((source, result))
 }
@@ -141,7 +138,17 @@ fn parse_reveals(source: &str) -> IResult<&str, Vec<Vec<Color>>> {
 }
 
 fn solve(source: &str) -> u32 {
-    8
+    let games = parse_games(source).unwrap().1;
+    games
+        .into_iter()
+        .filter(|g| {
+            if g.max_red() <= 12 && g.max_green() <= 13 && g.max_blue() <= 14 {
+                true
+            } else {
+                false
+            }
+        })
+        .fold(0, |acc, e| acc + e.id.unwrap())
 }
 
 #[cfg(test)]
