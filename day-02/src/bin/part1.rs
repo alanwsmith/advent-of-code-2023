@@ -65,13 +65,6 @@ fn main() {
 //     g
 // }
 
-fn parse_game_num(source: &str) -> IResult<&str, u32> {
-    let (source, _) = tag("Game ")(source)?;
-    let (source, results) = digit1(source)?;
-    let the_num: u32 = results.parse().unwrap();
-    Ok((source, the_num))
-}
-
 fn parse_color(source: &str) -> IResult<&str, Color> {
     let (source, num) = digit1(source)?;
     let (source, _) = space1(source)?;
@@ -86,6 +79,21 @@ fn parse_color(source: &str) -> IResult<&str, Color> {
 fn parse_colors(source: &str) -> IResult<&str, Vec<Color>> {
     separated_list1(tag(", "), parse_color)(source)
 }
+
+fn parse_game_num(source: &str) -> IResult<&str, u32> {
+    let (source, results) = tuple((
+        tag("Game "),
+        digit1.map(|d: &str| d.parse().unwrap()),
+        tag(":"),
+        space1,
+    ))(source)?;
+    Ok((source, results.1))
+}
+
+// fn parse_game(source: &str) -> IResult<&str, Game> {
+//     let g = Game::new();
+//     Ok((source, g))
+// }
 
 fn parse_reveals(source: &str) -> IResult<&str, Vec<Vec<Color>>> {
     separated_list1(tag("; "), parse_colors)(source)
@@ -113,6 +121,14 @@ mod tests {
         let left = vec![Color::Red(4), Color::Blue(5)];
         let right = parse_colors(input);
         assert_eq!(left, right.unwrap().1);
+    }
+
+    #[test]
+    fn parse_game_num_test() {
+        let input = "Game 1: ";
+        let left = Ok(("", 1));
+        let right = parse_game_num(input);
+        assert_eq!(left, right);
     }
 
     #[test]
