@@ -32,6 +32,8 @@ impl Game {
 }
 
 impl Game {
+    // This is not an idea way to do this
+    // but I wanted to play with the iterators
     pub fn max_red(&self) -> u32 {
         let v: Vec<_> = self
             .reveals
