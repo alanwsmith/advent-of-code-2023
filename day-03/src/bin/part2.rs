@@ -7,6 +7,7 @@ struct Solver {
 #[derive(Debug, PartialEq)]
 struct Gear {
     indexes: Vec<usize>,
+    ratios: Vec<usize>,
 }
 
 impl Solver {
@@ -30,7 +31,12 @@ impl Solver {
         let chars: Vec<char> = self.input_as_line().chars().collect();
         for (i, v) in chars.iter().enumerate() {
             if re.is_match(&v.to_string()) {
+                // NOTE: there's a bug here where
+                // if the marker as at the start or
+                // end of a line it'll push to the wrong
+                // position
                 let g = Gear {
+                    ratios: vec![],
                     indexes: vec![
                         i - self.line_length() - 1,
                         i - self.line_length(),
@@ -43,24 +49,9 @@ impl Solver {
                         i + self.line_length() + 1,
                     ],
                 };
-                // NOTE: there's a bug here where
-                // if the marker as at the start or
-                // end of a line it'll push to the wrong
-                // position
                 markers.push(g);
-
-                // markers.push(i - self.line_length());
-                // markers.push(i - self.line_length() + 1);
-                // markers.push(i - 1);
-                // markers.push(i);
-                // markers.push(i + 1);
-                // markers.push(i + self.line_length() - 1);
-                // markers.push(i + self.line_length());
-                // markers.push(i + self.line_length() + 1);
             }
         }
-        // markers
-        // vec![(2, 3, 4, 12, 13, 14, 22, 23, 24)]
         markers
     }
 
@@ -93,9 +84,32 @@ impl Solver {
     }
 
     pub fn solve(&self) -> usize {
-        dbg!("asdf");
-        dbg!(self.markers());
-        467835
+        let mut start_markers = self.markers();
+        start_markers.iter_mut().for_each(|marker| {
+            self.numbers().iter().for_each(|num| {
+                let mut value_added = false;
+                marker.indexes.iter().for_each(|index| {
+                    if (num.1..=num.2).contains(index) {
+                        if value_added == false {
+                            value_added = true;
+                            marker.ratios.push(num.0);
+                        }
+                    }
+                });
+            });
+        });
+
+        dbg!(&start_markers);
+
+        let value = start_markers.iter().fold(0, |acc, x| {
+            if x.ratios.len() as u32 == 2 {
+                acc + (&x.ratios[0] * &x.ratios[1])
+            } else {
+                acc
+            }
+        });
+
+        value
     }
 }
 
@@ -137,6 +151,7 @@ mod tests {
         let s = Solver::new_from(input);
         let left = vec![Gear {
             indexes: vec![2, 3, 4, 12, 13, 14, 22, 23, 24],
+            ratios: vec![],
         }];
         let right = s.markers();
         assert_eq!(left, right);
