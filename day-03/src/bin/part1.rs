@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+#![allow(unused_mut)]
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 use regex::Regex;
@@ -18,37 +19,66 @@ impl Solver {
         self.input.lines().collect()
     }
 
-    pub fn line_length(&self) -> u32 {
+    pub fn line_length(&self) -> usize {
         self.input.lines().nth(0).unwrap().len().try_into().unwrap()
     }
 
-    pub fn markers(&self) -> Vec<u32> {
+    pub fn markers(&self) -> Vec<usize> {
+        let mut markers: Vec<usize> = vec![];
         let re = Regex::new(r"[^0-9.]").unwrap();
-        let mut markers: Vec<u32> = vec![];
         let chars: Vec<char> = self.input_as_line().chars().collect();
         for (i, v) in chars.iter().enumerate() {
             if re.is_match(&v.to_string()) {
-                markers.push(i as u32 - self.line_length() - 1);
-                markers.push(i as u32 - self.line_length());
-                markers.push(i as u32 - self.line_length() + 1);
-                markers.push(i as u32 - 1);
-                markers.push(i as u32);
-                markers.push(i as u32 + 1);
-                markers.push(i as u32 + self.line_length() - 1);
-                markers.push(i as u32 + self.line_length());
-                markers.push(i as u32 + self.line_length() + 1);
+                markers.push(i - self.line_length() - 1);
+                markers.push(i - self.line_length());
+                markers.push(i - self.line_length() + 1);
+                markers.push(i - 1);
+                markers.push(i);
+                markers.push(i + 1);
+                markers.push(i + self.line_length() - 1);
+                markers.push(i + self.line_length());
+                markers.push(i + self.line_length() + 1);
             }
         }
         markers
+    }
+
+    pub fn numbers(&self) -> Vec<(usize, usize, usize)> {
+        let mut numbers: Vec<(usize, usize, usize)> = vec![];
+        let re = Regex::new(r"[0-9]").unwrap();
+        let chars: Vec<char> = self.input_as_line().chars().collect();
+        let mut current_num = (0, 0, 0);
+        let mut send_it = false;
+        for (i, v) in chars.iter().enumerate() {
+            if re.is_match(&v.to_string()) {
+                send_it = true;
+                let digit = &v.to_string().parse().unwrap();
+                if current_num.0 == 0 {
+                    current_num.1 = i;
+                } else {
+                    current_num.2 = i;
+                }
+                current_num.0 = (current_num.0 * 10) + digit;
+            } else if send_it == true {
+                numbers.push(current_num);
+                current_num = (0, 0, 0);
+                send_it = false;
+            }
+        }
+        numbers
+    }
+
+    pub fn solve(&self) -> usize {
+        self.numbers().iter().for_each(|num| {
+            dbg!(num);
+            ()
+        });
+        4361
     }
 }
 
 fn main() {
     println!("Hello, world!");
-}
-
-fn solve(source: &str) -> u32 {
-    4361
 }
 
 #[cfg(test)]
@@ -76,13 +106,22 @@ mod tests {
     }
 
     #[test]
-    fn get_markers() {
+    fn markers_test() {
         let input = "467..114..
 ...*......
 ..35..633.";
         let s = Solver::new_from(input);
         let left = vec![2, 3, 4, 12, 13, 14, 22, 23, 24];
         let right = s.markers();
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn numbers_test() {
+        let input = "467..114..";
+        let s = Solver::new_from(input);
+        let left = vec![(467, 0, 2), (114, 5, 7)];
+        let right = s.numbers();
         assert_eq!(left, right);
     }
 
@@ -98,8 +137,9 @@ mod tests {
 ......755.
 ...$.*....
 .664.598..";
+        let s = Solver::new_from(input);
         let left = 4361;
-        let right = solve(input);
+        let right = s.solve();
         assert_eq!(left, right);
     }
 }
