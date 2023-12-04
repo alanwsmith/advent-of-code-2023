@@ -12,6 +12,7 @@ use nom::sequence::tuple;
 use nom::IResult;
 use nom::Parser;
 
+#[derive(Debug)]
 struct Card {
     line: Option<String>,
 }
@@ -78,13 +79,22 @@ impl Solver {
         }
     }
 
-    fn solve(&self) -> usize {
-        13
+    fn solve(&mut self) -> usize {
+        let input = self.input.clone().unwrap();
+        input.lines().for_each(|line| {
+            let mut c = Card::new();
+            c.line = Some(line.to_string());
+            self.cards.push(c);
+        });
+        let total_points = self.cards.iter().fold(0, |acc, card| acc + card.points());
+        total_points
     }
 }
 
 fn main() {
-    println!("Hello, world!");
+    let mut s = Solver::new();
+    s.input = Some(include_str!("./input1.txt").to_string());
+    dbg!(s.solve());
 }
 
 #[cfg(test)]
