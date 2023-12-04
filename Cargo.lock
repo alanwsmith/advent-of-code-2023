@@ -47,6 +47,70 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf0a07a401f374238ab8e2f11a104d2851bf9ce711ec69804834de8af45c7af"
 
 [[package]]
+name = "day_01_part_01"
+version = "0.1.0"
+dependencies = [
+ "divan",
+ "nom",
+]
+
+[[package]]
+name = "day_01_part_02"
+version = "0.1.0"
+dependencies = [
+ "divan",
+ "nom",
+]
+
+[[package]]
+name = "day_02_part_01"
+version = "0.1.0"
+dependencies = [
+ "divan",
+ "nom",
+]
+
+[[package]]
+name = "day_02_part_02"
+version = "0.1.0"
+dependencies = [
+ "divan",
+ "nom",
+]
+
+[[package]]
+name = "day_03_part_01"
+version = "0.1.0"
+dependencies = [
+ "divan",
+ "nom",
+]
+
+[[package]]
+name = "day_03_part_02"
+version = "0.1.0"
+dependencies = [
+ "divan",
+ "nom",
+]
+
+[[package]]
+name = "day_04_part_01"
+version = "0.1.0"
+dependencies = [
+ "divan",
+ "nom",
+]
+
+[[package]]
+name = "day_04_part_02"
+version = "0.1.0"
+dependencies = [
+ "divan",
+ "nom",
+]
+
+[[package]]
 name = "day_04_part_1"
 version = "0.1.0"
 dependencies = [

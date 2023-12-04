@@ -8,7 +8,7 @@ use nom::sequence::pair;
 use nom::IResult;
 
 fn main() {
-    let input = include_str!("./input1.txt");
+    let input = include_str!("../input.txt");
     let output = solve(input);
     dbg!(output);
 }

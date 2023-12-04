@@ -1,0 +1,10 @@
+[package]
+name = "day_01_part_02"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+nom = { workspace = true }
+
+[dev-dependencies]
+divan = { workspace = true }
