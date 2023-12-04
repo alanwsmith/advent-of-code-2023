@@ -1,12 +1,16 @@
 #![allow(dead_code)]
+#![allow(unused_imports)]
 
 use nom::bytes::complete::tag;
 use nom::bytes::complete::take_until;
 use nom::character::complete::digit1;
 use nom::character::complete::space1;
 use nom::multi::separated_list1;
+use nom::sequence::delimited;
 use nom::sequence::pair;
+use nom::sequence::tuple;
 use nom::IResult;
+use nom::Parser;
 
 struct Card {
     line: Option<String>,
@@ -25,12 +29,39 @@ impl Card {
         Ok(("", picks))
     }
 
+    fn get_winners(&self) -> IResult<&str, Vec<usize>> {
+        let source = self.line.as_ref().unwrap();
+        let (source, _) = tuple((take_until(":"), tag(":"), space1))(source.as_str())?;
+        let (_, results) = take_until("|")(source)?;
+        let (_, winner_strings) = separated_list1(space1, digit1)(results)?;
+        let winners: Vec<usize> = winner_strings
+            .into_iter()
+            .map(|p| p.parse::<usize>().unwrap())
+            .collect();
+        Ok(("", winners))
+    }
+
     fn new() -> Card {
         Card { line: None }
     }
 
+    fn points(&self) -> usize {
+        let mut counter = 0b1;
+        self.winners().iter().for_each(|winner| {
+            if self.picks().contains(winner) {
+                counter = counter << 1;
+            }
+            ()
+        });
+        counter >> 1
+    }
+
     fn picks(&self) -> Vec<usize> {
         self.get_picks().unwrap().1
+    }
+
+    fn winners(&self) -> Vec<usize> {
+        self.get_winners().unwrap().1
     }
 }
 
@@ -61,11 +92,29 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parse_line_test() {
+    fn points_card_test() {
+        let mut c = Card::new();
+        c.line = Some("Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19".to_string());
+        let left = 2;
+        let right = c.points();
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn picks_card_test() {
         let mut c = Card::new();
         c.line = Some("Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19".to_string());
         let left = vec![61, 30, 68, 82, 17, 32, 24, 19];
         let right = c.picks();
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn winners_card_test() {
+        let mut c = Card::new();
+        c.line = Some("Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19".to_string());
+        let left = vec![13, 32, 20, 16, 61];
+        let right = c.winners();
         assert_eq!(left, right);
     }
 
