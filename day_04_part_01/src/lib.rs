@@ -1,16 +1,13 @@
-#![allow(dead_code)]
-#![allow(unused_imports)]
-
 use nom::bytes::complete::tag;
 use nom::bytes::complete::take_until;
 use nom::character::complete::digit1;
 use nom::character::complete::space1;
 use nom::multi::separated_list1;
-use nom::sequence::delimited;
+// use nom::sequence::delimited;
 use nom::sequence::pair;
 use nom::sequence::tuple;
 use nom::IResult;
-use nom::Parser;
+// use nom::Parser;
 
 #[derive(Debug)]
 struct Card {
@@ -66,20 +63,20 @@ impl Card {
     }
 }
 
-struct Solver {
-    input: Option<String>,
+pub struct Solver {
+    pub input: Option<String>,
     cards: Vec<Card>,
 }
 
 impl Solver {
-    fn new() -> Solver {
+    pub fn new() -> Solver {
         Solver {
             input: None,
             cards: vec![],
         }
     }
 
-    fn solve(&mut self) -> usize {
+    pub fn solve(&mut self) -> usize {
         let input = self.input.clone().unwrap();
         input.lines().for_each(|line| {
             let mut c = Card::new();
@@ -89,12 +86,6 @@ impl Solver {
         let total_points = self.cards.iter().fold(0, |acc, card| acc + card.points());
         total_points
     }
-}
-
-fn main() {
-    let mut s = Solver::new();
-    s.input = Some(include_str!("./input1.txt").to_string());
-    dbg!(s.solve());
 }
 
 #[cfg(test)]

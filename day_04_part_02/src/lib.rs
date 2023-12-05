@@ -1,23 +1,15 @@
-#![allow(dead_code)]
-#![allow(unused_imports)]
-#![allow(unused_mut)]
-#![allow(unused_variables)]
 use nom::bytes::complete::tag;
 use nom::bytes::complete::take_until;
 use nom::character::complete::digit1;
 use nom::character::complete::space1;
 use nom::multi::separated_list1;
-use nom::sequence::delimited;
 use nom::sequence::pair;
 use nom::sequence::tuple;
 use nom::IResult;
-use nom::Parser;
 
 #[derive(Debug)]
 struct Card {
     line: Option<String>,
-    cache_picks: Vec<usize>,
-    cache_winners: Vec<usize>,
 }
 
 impl Card {
@@ -46,11 +38,7 @@ impl Card {
     }
 
     fn new() -> Card {
-        Card {
-            line: None,
-            cache_picks: vec![],
-            cache_winners: vec![],
-        }
+        Card { line: None }
     }
 
     fn points(&self) -> usize {
@@ -65,19 +53,11 @@ impl Card {
     }
 
     fn picks(&self) -> Vec<usize> {
-        if self.cache_picks.len() > 0 {
-            self.cache_picks.clone()
-        } else {
-            self.get_picks().unwrap().1
-        }
+        self.get_picks().unwrap().1
     }
 
     fn winners(&self) -> Vec<usize> {
-        if self.cache_winners.len() > 0 {
-            self.cache_winners.clone()
-        } else {
-            self.get_winners().unwrap().1
-        }
+        self.get_winners().unwrap().1
     }
 
     fn winner_count(&self) -> usize {
@@ -88,20 +68,20 @@ impl Card {
     }
 }
 
-struct Solver {
-    input: Option<String>,
+pub struct Solver {
+    pub input: Option<String>,
     cards: Vec<Card>,
 }
 
 impl Solver {
-    fn new() -> Solver {
+    pub fn new() -> Solver {
         Solver {
             input: None,
             cards: vec![],
         }
     }
 
-    fn solve(&mut self) -> usize {
+    pub fn solve(&mut self) -> usize {
         let input = self.input.clone().unwrap();
         input.lines().for_each(|line| {
             let mut c = Card::new();
@@ -111,21 +91,21 @@ impl Solver {
         let mut card_counts: Vec<_> = self.cards.iter().map(|_| 1).collect();
 
         for card_index in 0..self.cards.len() {
-            for card_count in 1..=self.cards[card_index].winner_count() {
-                if card_index + card_count < self.cards.len() {
-                    // refactor to avoid third nested for loop
-                    card_counts[card_index + card_count] += 1 * card_counts[card_index];
+            for card_copy in 0..card_counts[card_index] {
+                for card_count in 1..=self.cards[card_index].winner_count() {
+                    if card_index + card_count < self.cards.len() {
+                        card_counts[card_index + card_count] += 1;
+                    }
                 }
             }
         }
-
         card_counts.into_iter().reduce(|acc, v| acc + v).unwrap()
     }
 }
 
 fn main() {
     let mut s = Solver::new();
-    s.input = Some(include_str!("./input1.txt").to_string());
+    s.input = Some(include_str!("../input.txt").to_string());
     dbg!(s.solve());
 }
 

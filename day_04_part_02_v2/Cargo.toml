@@ -12,3 +12,6 @@ divan = { workspace = true }
 [[bench]]
 name = "benchmark"
 harness = false
+
+[lib]
+doctest = false

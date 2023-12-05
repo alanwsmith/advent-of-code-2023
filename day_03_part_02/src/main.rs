@@ -114,7 +114,7 @@ impl Solver {
 }
 
 fn main() {
-    let input = include_str!("./input.txt");
+    let input = include_str!("../input.txt");
     let s = Solver::new_from(input);
     dbg!(s.solve());
 }

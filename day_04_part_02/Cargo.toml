@@ -8,3 +8,6 @@ nom = { workspace = true }
 
 [dev-dependencies]
 divan = { workspace = true }
+
+[lib]
+doctest = false
