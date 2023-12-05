@@ -3,11 +3,9 @@ use nom::bytes::complete::take_until;
 use nom::character::complete::digit1;
 use nom::character::complete::space1;
 use nom::multi::separated_list1;
-use nom::sequence::delimited;
 use nom::sequence::pair;
 use nom::sequence::tuple;
 use nom::IResult;
-use nom::Parser;
 
 #[derive(Debug)]
 struct Card {
@@ -47,17 +45,6 @@ impl Card {
             cache_picks: vec![],
             cache_winners: vec![],
         }
-    }
-
-    fn points(&self) -> usize {
-        let mut counter = 0b1;
-        self.winners().iter().for_each(|winner| {
-            if self.picks().contains(winner) {
-                counter = counter << 1;
-            }
-            ()
-        });
-        counter >> 1
     }
 
     fn picks(&self) -> Vec<usize> {
@@ -123,15 +110,6 @@ impl Solver {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn points_card_test() {
-        let mut c = Card::new();
-        c.line = Some("Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19".to_string());
-        let left = 2;
-        let right = c.points();
-        assert_eq!(left, right);
-    }
 
     #[test]
     fn picks_card_test() {
