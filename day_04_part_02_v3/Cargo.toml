@@ -1,0 +1,13 @@
+[package]
+name = "day_04_part_02_v3"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+nom = { workspace = true }
+
+[dev-dependencies]
+divan = { workspace = true }
+
+[lib]
+doctest = false
