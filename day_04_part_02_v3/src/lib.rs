@@ -8,23 +8,6 @@ use nom::sequence::tuple;
 use nom::IResult;
 
 #[derive(Debug)]
-struct Report {
-    card_index: usize,
-    winner_count: usize,
-    run: usize,
-}
-
-impl Report {
-    fn new() -> Report {
-        Report {
-            card_index: 0,
-            winner_count: 0,
-            run: 0,
-        }
-    }
-}
-
-#[derive(Debug)]
 struct Card {
     line: Option<String>,
     cache_picks: Vec<usize>,
@@ -64,17 +47,6 @@ impl Card {
         }
     }
 
-    fn points(&self) -> usize {
-        let mut counter = 0b1;
-        self.winners().iter().for_each(|winner| {
-            if self.picks().contains(winner) {
-                counter = counter << 1;
-            }
-            ()
-        });
-        counter >> 1
-    }
-
     fn picks(&self) -> Vec<usize> {
         if self.cache_picks.len() > 0 {
             self.cache_picks.clone()
@@ -101,31 +73,22 @@ impl Card {
 
 pub struct Solver {
     pub input: Option<String>,
-    cards: Vec<Card>,
 }
 
 impl Solver {
     pub fn new() -> Solver {
         Solver {
             input: None,
-            cards: vec![],
         }
     }
 
     pub fn solve(&mut self) -> usize {
         let input = self.input.clone().unwrap();
         let mut updates: Vec<usize> = vec![0];
-        let mut card_index = 0;
         let response = input.lines().fold(0, |acc, line| {
-            let mut report = Report::new();
-            report.card_index = card_index;
-            card_index += 1;
             let mut c = Card::new();
             c.line = Some(line.to_string());
-            report.winner_count = c.winner_count();
-            let card_runs = updates[0];
-            for card_run in 0..=card_runs {
-                report.run = card_run;
+            for _ in 0..=updates[0] {
                 for num in 1..=c.winner_count() {
                     if num > updates.len() - 1 {
                         updates.push(0)
@@ -145,15 +108,6 @@ impl Solver {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn points_card_test() {
-        let mut c = Card::new();
-        c.line = Some("Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19".to_string());
-        let left = 2;
-        let right = c.points();
-        assert_eq!(left, right);
-    }
 
     #[test]
     fn picks_card_test() {
