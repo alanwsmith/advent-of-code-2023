@@ -19,6 +19,27 @@ impl Solver {
         Solver { input: None }
     }
 
+    pub fn get_destination(&self, map_type: &str, id: u32) -> u32 {
+        let entries = self.parse_map_data(map_type).unwrap().1;
+        let max_entries_tuple = entries.iter().max_by_key(|x| x.1 + x.2).unwrap();
+        let max_entries = max_entries_tuple.1 + max_entries_tuple.2;
+        let mut crosswalk: Vec<u32> = vec![];
+        for slot in 0..=max_entries {
+            crosswalk.push(slot)
+        }
+
+        entries.iter().for_each(|entry| {
+            let stop_num = entry.1 + entry.2;
+            for (indx, update) in (entry.1..=stop_num).into_iter().enumerate() {
+                crosswalk[update as usize] = entry.0 + indx as u32
+            }
+        });
+
+        // dbg!(crosswalk);
+        crosswalk[id as usize]
+        // 81
+    }
+
     // pub fn fertilizer_to_water_map(&self) -> Vec<(u32, u32, u32)> {
     //     self.parse_map_data("fertilizer-to-water map:").unwrap().1
     // }
@@ -46,6 +67,7 @@ impl Solver {
     pub fn parse_map_data(&self, map_key: &str) -> IResult<&str, Vec<(u32, u32, u32)>> {
         let (source, _) =
             pair(take_until(map_key), tag(map_key))(self.input.as_ref().unwrap().as_str())?;
+        let (source, _) = tag(" map:")(source)?;
         let (source, _) = line_ending(source)?;
         let (source, entry_matches) =
             many1(pair(separated_list1(space1, digit1), opt(line_ending)))(source)?;
@@ -95,6 +117,42 @@ mod tests {
         s.input = Some(include_str!("../input-test.txt").to_string());
         let left = 35;
         let right = s.solve();
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn get_destination_without_changes() {
+        let mut s = Solver::new();
+        s.input = Some(include_str!("../input-test.txt").to_string());
+        let left = 14;
+        let right = s.get_destination("seed-to-soil", 14);
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn get_destination_without_changes_2() {
+        let mut s = Solver::new();
+        s.input = Some(include_str!("../input-test.txt").to_string());
+        let left = 13;
+        let right = s.get_destination("seed-to-soil", 13);
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn get_destination_with_changes() {
+        let mut s = Solver::new();
+        s.input = Some(include_str!("../input-test.txt").to_string());
+        let left = 81;
+        let right = s.get_destination("seed-to-soil", 79);
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn get_destination_with_changes_2() {
+        let mut s = Solver::new();
+        s.input = Some(include_str!("../input-test.txt").to_string());
+        let left = 57;
+        let right = s.get_destination("seed-to-soil", 55);
         assert_eq!(left, right);
     }
 
