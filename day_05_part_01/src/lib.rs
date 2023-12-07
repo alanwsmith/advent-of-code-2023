@@ -32,7 +32,7 @@ impl Solver {
             }
             entries.iter().for_each(|entry| {
                 let stop_num = entry.1 + entry.2;
-                for (indx, update) in (entry.1..=stop_num).into_iter().enumerate() {
+                for (indx, update) in (entry.1..stop_num).into_iter().enumerate() {
                     crosswalk[update as usize] = entry.0 + indx as u32
                 }
             });
@@ -43,8 +43,23 @@ impl Solver {
     pub fn get_seed_location(&self, id: u32) -> u32 {
         let soil_id = self.get_destination("seed-to-soil", id);
         let fertilizer_id = self.get_destination("soil-to-fertilizer", soil_id);
-        dbg!(fertilizer_id);
-        82
+        let water_id = self.get_destination("fertilizer-to-water", fertilizer_id);
+        let light_id = self.get_destination("water-to-light", water_id);
+        let temperature_id = self.get_destination("light-to-temperature", light_id);
+        let humidity_id = self.get_destination("temperature-to-humidity", temperature_id);
+        let location_id = self.get_destination("humidity-to-location", humidity_id);
+        dbg!(format!(
+            "{} {} {} {} {} {} {} {}",
+            id,
+            soil_id,
+            fertilizer_id,
+            water_id,
+            light_id,
+            temperature_id,
+            humidity_id,
+            location_id
+        ));
+        location_id
     }
 
     // pub fn fertilizer_to_water_map(&self) -> Vec<(u32, u32, u32)> {
@@ -178,6 +193,15 @@ mod tests {
         s.input = Some(include_str!("../input-test.txt").to_string());
         let left = 82;
         let right = s.get_seed_location(79);
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn get_seed_location_2() {
+        let mut s = Solver::new();
+        s.input = Some(include_str!("../input-test.txt").to_string());
+        let left = 43;
+        let right = s.get_seed_location(14);
         assert_eq!(left, right);
     }
 
