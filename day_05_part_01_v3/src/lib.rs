@@ -14,8 +14,6 @@ use std::ops::Range;
 
 pub struct Solver {
     pub input: Option<String>,
-    // maps: HashMap<String, Vec<u32>>,
-    // map_hashes: HashMap<String, HashMap<u32, u32>>,
     range_maps: HashMap<String, Vec<(Range<u32>, i32)>>,
 }
 
@@ -23,8 +21,6 @@ impl Solver {
     pub fn new() -> Solver {
         Solver {
             input: None,
-            // maps: HashMap::new(),
-            // map_hashes: HashMap::new(),
             range_maps: HashMap::new(),
         }
     }
@@ -57,24 +53,6 @@ impl Solver {
             });
 
         return_value
-
-        // if !self.map_hashes.contains_key(map_type) {
-        //     dbg!(format!("Making: {map_type}"));
-        //     let mut new_map_hashes = HashMap::new();
-        //     let entries = self.parse_map_data(map_type).unwrap().1;
-        //     entries.iter().for_each(|entry| {
-        //         let stop_num = entry.1 + entry.2;
-        //         for (indx, update) in (entry.1..stop_num).into_iter().enumerate() {
-        //             new_map_hashes.insert(update, entry.0 + indx as u32);
-        //         }
-        //     });
-        //     self.map_hashes.insert(map_type.to_string(), new_map_hashes);
-        // }
-
-        // match self.map_hashes.get(map_type).unwrap().get(&id) {
-        //     Some(number) => *number,
-        //     None => id,
-        // }
     }
 
     pub fn get_seed_location(&mut self, id: u32) -> u32 {
