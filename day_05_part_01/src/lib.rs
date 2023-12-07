@@ -20,22 +20,19 @@ impl Solver {
     }
 
     pub fn seed_to_soil_map(&self) -> Vec<(u32, u32, u32)> {
-        self.parse_seed_to_soil_map().unwrap().1
+        self.parse_map_data("seed-to-soil map:").unwrap().1
     }
 
     pub fn seeds(&self) -> Vec<u32> {
         self.parse_seeds().unwrap().1
     }
 
-    pub fn parse_seed_to_soil_map(&self) -> IResult<&str, Vec<(u32, u32, u32)>> {
-        let (source, _) = pair(take_until("seed-to-soil map:"), tag("seed-to-soil map:"))(
-            self.input.as_ref().unwrap().as_str(),
-        )?;
+    pub fn parse_map_data(&self, map_key: &str) -> IResult<&str, Vec<(u32, u32, u32)>> {
+        let (source, _) =
+            pair(take_until(map_key), tag(map_key))(self.input.as_ref().unwrap().as_str())?;
         let (source, _) = line_ending(source)?;
         let (source, entry_matches) =
             many1(pair(separated_list1(space1, digit1), opt(line_ending)))(source)?;
-        // let seeds: Vec<u32> = seed_strings.iter().map(|s| s.parse().unwrap()).collect();
-
         let entries: Vec<(u32, u32, u32)> = entry_matches
             .iter()
             .map(|e| {
@@ -46,8 +43,6 @@ impl Solver {
                 )
             })
             .collect();
-
-        //  Ok((source, vec![(50, 98, 2), (52, 50, 48)]))
         Ok((source, entries))
     }
 
