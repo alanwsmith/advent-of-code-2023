@@ -146,7 +146,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "day_05_part_01"
+name = "day_05_part_01_v1"
+version = "0.1.0"
+dependencies = [
+ "divan",
+ "nom",
+]
+
+[[package]]
+name = "day_05_part_01_v2"
 version = "0.1.0"
 dependencies = [
  "divan",
