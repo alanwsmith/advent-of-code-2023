@@ -59,12 +59,9 @@ impl Solver {
         location_id
     }
 
-
-
     pub fn seeds(&self) -> Vec<u32> {
         self.parse_seeds().unwrap().1
     }
-
 
     pub fn parse_map_data(&self, map_key: &str) -> IResult<&str, Vec<(u32, u32, u32)>> {
         let (source, _) =
@@ -101,7 +98,6 @@ impl Solver {
             .min()
             .unwrap()
     }
-
 }
 
 #[cfg(test)]
@@ -197,5 +193,4 @@ mod tests {
         let right = s.get_seed_location(13);
         assert_eq!(left, right);
     }
-
 }
