@@ -9,6 +9,5 @@ fn main() {
         Race { time: 72, record: 1110 },
         Race { time: 95, record: 1696 },
     ];
-    s.input = Some(include_str!("../input.txt").to_string());
     dbg!(s.solve());
 }
