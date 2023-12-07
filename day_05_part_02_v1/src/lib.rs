@@ -91,12 +91,23 @@ impl Solver {
     }
 
     pub fn parse_seeds(&self) -> IResult<&str, Vec<u32>> {
+        let mut results: Vec<u32> = vec![];
         let (source, _) =
             pair(take_until("seeds:"), tag("seeds:"))(self.input.as_ref().unwrap().as_str())?;
-        let (source, seed_strings) = many1(pair(space1, digit1).map(|x| x.1))(source)?;
-        let seeds: Vec<u32> = seed_strings.iter().map(|s| s.parse().unwrap()).collect();
-        dbg!(format!("SEED COUNT: {}", &seeds.len()));
-        Ok((source, seeds))
+        let (source, seed_strings) = many1(pair(
+            pair(space1, digit1).map(|x| x.1),
+            pair(space1, digit1).map(|x| x.1),
+        ))(source)?;
+        seed_strings.iter().for_each(|seed_string| {
+            let start_num = seed_string.0.parse::<u32>().unwrap();
+            let end_num =
+                seed_string.0.parse::<u32>().unwrap() + seed_string.1.parse::<u32>().unwrap();
+            for num in start_num..end_num {
+                results.push(num)
+            }
+        });
+        dbg!(format!("SEED COUNT: {}", &results.len()));
+        Ok((source, results))
     }
 
     pub fn solve(&mut self) -> u32 {
@@ -116,8 +127,26 @@ mod tests {
     fn integration_1() {
         let mut s = Solver::new();
         s.input = Some(include_str!("../input-test.txt").to_string());
-        let left = 35;
+        let left = 46;
         let right = s.solve();
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn seed_ids() {
+        let mut s = Solver::new();
+        s.input = Some(include_str!("../input-test.txt").to_string());
+        let left = 79;
+        let right = s.seeds()[0];
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn seed_ids_part_2() {
+        let mut s = Solver::new();
+        s.input = Some(include_str!("../input-test.txt").to_string());
+        let left = 80;
+        let right = s.parse_seeds().unwrap().1[1];
         assert_eq!(left, right);
     }
 

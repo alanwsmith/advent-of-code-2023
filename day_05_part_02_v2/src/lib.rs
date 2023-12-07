@@ -12,50 +12,57 @@ use nom::Parser;
 use std::collections::HashMap;
 use std::ops::Range;
 
+pub struct Crosswalk {
+    start: i128,
+    end: i128,
+    offset: i128,
+}
+
 pub struct Solver {
     pub input: Option<String>,
-    range_maps: HashMap<String, Vec<(Range<u32>, i32)>>,
+    crosswalks: HashMap<String, Vec<Crosswalk>>,
 }
 
 impl Solver {
     pub fn new() -> Solver {
         Solver {
             input: None,
-            range_maps: HashMap::new(),
+            crosswalks: HashMap::new(),
         }
     }
 
-    pub fn get_destination(&mut self, map_type: &str, id: u32) -> u32 {
-        if !self.range_maps.contains_key(map_type) {
+    pub fn get_destination(&mut self, map_type: &str, id: i128) -> i128 {
+        if !self.crosswalks.contains_key(map_type) {
             let entries = self.parse_map_data(map_type).unwrap().1;
-            let mut ranges: Vec<(Range<u32>, i32)> = vec![];
+            let mut crosswalks: Vec<Crosswalk> = vec![];
             entries.iter().for_each(|entry| {
-                let range_start = entry.1;
-                let range_end = entry.1 + entry.2;
-                let offset: i32 = entry.1 as i32 - entry.0 as i32;
-                let new_range = range_start..range_end;
-                ranges.push((new_range, offset));
+                crosswalks.push(Crosswalk {
+                    start: entry.1 as i128,
+                    end: entry.1 as i128 + entry.2 as i128,
+                    offset: entry.1 as i128 - entry.0 as i128,
+                });
             });
-            self.range_maps.insert(map_type.to_string(), ranges);
+            self.crosswalks.insert(map_type.to_string(), crosswalks);
         }
 
         let mut return_value = id;
 
-        self.range_maps
+        self.crosswalks
             .get(map_type)
             .unwrap()
             .iter()
-            .for_each(|rng| {
-                if rng.0.contains(&id) {
-                    let new_return_value = id as i32 - rng.1;
-                    return_value = new_return_value as u32;
+            .for_each(|crosswalk| {
+                if id < crosswalk.end && id >= crosswalk.start {
+                    return_value = id - crosswalk.offset;
                 }
             });
 
         return_value
+
+        // 46
     }
 
-    pub fn get_seed_location(&mut self, id: u32) -> u32 {
+    pub fn get_seed_location(&mut self, id: i128) -> i128 {
         let soil_id = self.get_destination("seed-to-soil", id);
         let fertilizer_id = self.get_destination("soil-to-fertilizer", soil_id);
         let water_id = self.get_destination("fertilizer-to-water", fertilizer_id);
@@ -66,18 +73,18 @@ impl Solver {
         location_id
     }
 
-    pub fn seeds(&self) -> Vec<u32> {
+    pub fn seeds(&self) -> Vec<i128> {
         self.parse_seeds().unwrap().1
     }
 
-    pub fn parse_map_data(&self, map_key: &str) -> IResult<&str, Vec<(u32, u32, u32)>> {
+    pub fn parse_map_data(&self, map_key: &str) -> IResult<&str, Vec<(i128, i128, i128)>> {
         let (source, _) =
             pair(take_until(map_key), tag(map_key))(self.input.as_ref().unwrap().as_str())?;
         let (source, _) = tag(" map:")(source)?;
         let (source, _) = line_ending(source)?;
         let (source, entry_matches) =
             many1(pair(separated_list1(space1, digit1), opt(line_ending)))(source)?;
-        let entries: Vec<(u32, u32, u32)> = entry_matches
+        let entries: Vec<(i128, i128, i128)> = entry_matches
             .iter()
             .map(|e| {
                 (
@@ -90,16 +97,27 @@ impl Solver {
         Ok((source, entries))
     }
 
-    pub fn parse_seeds(&self) -> IResult<&str, Vec<u32>> {
+    pub fn parse_seeds(&self) -> IResult<&str, Vec<i128>> {
+        let mut results: Vec<i128> = vec![];
         let (source, _) =
             pair(take_until("seeds:"), tag("seeds:"))(self.input.as_ref().unwrap().as_str())?;
-        let (source, seed_strings) = many1(pair(space1, digit1).map(|x| x.1))(source)?;
-        let seeds: Vec<u32> = seed_strings.iter().map(|s| s.parse().unwrap()).collect();
-        dbg!(format!("SEED COUNT: {}", &seeds.len()));
-        Ok((source, seeds))
+        let (source, seed_strings) = many1(pair(
+            pair(space1, digit1).map(|x| x.1),
+            pair(space1, digit1).map(|x| x.1),
+        ))(source)?;
+        seed_strings.iter().for_each(|seed_string| {
+            let start_num = seed_string.0.parse::<i128>().unwrap();
+            let end_num =
+                seed_string.0.parse::<i128>().unwrap() + seed_string.1.parse::<i128>().unwrap();
+            for num in start_num..end_num {
+                results.push(num)
+            }
+        });
+        // dbg!(format!("SEED COUNT: {}", &results.len()));
+        Ok((source, results))
     }
 
-    pub fn solve(&mut self) -> u32 {
+    pub fn solve(&mut self) -> i128 {
         self.seeds()
             .into_iter()
             .map(|id| self.get_seed_location(id))
@@ -116,8 +134,26 @@ mod tests {
     fn integration_1() {
         let mut s = Solver::new();
         s.input = Some(include_str!("../input-test.txt").to_string());
-        let left = 35;
+        let left = 46;
         let right = s.solve();
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn seed_ids() {
+        let mut s = Solver::new();
+        s.input = Some(include_str!("../input-test.txt").to_string());
+        let left = 79;
+        let right = s.seeds()[0];
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn seed_ids_part_2() {
+        let mut s = Solver::new();
+        s.input = Some(include_str!("../input-test.txt").to_string());
+        let left = 80;
+        let right = s.parse_seeds().unwrap().1[1];
         assert_eq!(left, right);
     }
 
