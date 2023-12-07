@@ -9,38 +9,68 @@ use nom::multi::separated_list1;
 use nom::sequence::pair;
 use nom::IResult;
 use nom::Parser;
+use std::collections::HashMap;
 
 pub struct Solver {
     pub input: Option<String>,
+    map_soil_from_seed: Vec<u32>,
+    maps: HashMap<String, Vec<u32>>,
 }
 
 impl Solver {
     pub fn new() -> Solver {
-        Solver { input: None }
+        Solver {
+            input: None,
+            map_soil_from_seed: vec![],
+            maps: HashMap::new(),
+        }
     }
 
-    pub fn get_destination(&self, map_type: &str, id: u32) -> u32 {
-        let entries = self.parse_map_data(map_type).unwrap().1;
-        let max_entries_tuple = entries.iter().max_by_key(|x| x.1 + x.2).unwrap();
-        let max_entries = max_entries_tuple.1 + max_entries_tuple.2;
-        if id > max_entries {
-            id
-        } else {
-            let mut crosswalk: Vec<u32> = vec![];
+    pub fn get_destination(&mut self, map_type: &str, id: u32) -> u32 {
+        if !self.maps.contains_key(map_type) {
+            dbg!(format!("Making: {map_type}"));
+            let entries = self.parse_map_data(map_type).unwrap().1;
+            let max_entries_tuple = entries.iter().max_by_key(|x| x.1 + x.2).unwrap();
+            let max_entries = max_entries_tuple.1 + max_entries_tuple.2;
+            let mut new_map: Vec<u32> = vec![];
             for slot in 0..=max_entries {
-                crosswalk.push(slot)
+                new_map.push(slot)
             }
             entries.iter().for_each(|entry| {
                 let stop_num = entry.1 + entry.2;
                 for (indx, update) in (entry.1..stop_num).into_iter().enumerate() {
-                    crosswalk[update as usize] = entry.0 + indx as u32
+                    new_map[update as usize] = entry.0 + indx as u32
                 }
             });
-            crosswalk[id as usize]
+            self.maps.insert(map_type.to_string(), new_map);
         }
+        if id as usize > self.maps.get(map_type).unwrap().len() {
+            id
+        } else {
+            self.maps.get(map_type).unwrap()[id as usize]
+        }
+
+        // let entries = self.parse_map_data(map_type).unwrap().1;
+        // let max_entries_tuple = entries.iter().max_by_key(|x| x.1 + x.2).unwrap();
+        // let max_entries = max_entries_tuple.1 + max_entries_tuple.2;
+        // if id > max_entries {
+        //     id
+        // } else {
+        //     let mut crosswalk: Vec<u32> = vec![];
+        //     for slot in 0..=max_entries {
+        //         crosswalk.push(slot)
+        //     }
+        //     entries.iter().for_each(|entry| {
+        //         let stop_num = entry.1 + entry.2;
+        //         for (indx, update) in (entry.1..stop_num).into_iter().enumerate() {
+        //             crosswalk[update as usize] = entry.0 + indx as u32
+        //         }
+        //     });
+        //     crosswalk[id as usize]
+        // }
     }
 
-    pub fn get_seed_location(&self, id: u32) -> u32 {
+    pub fn get_seed_location(&mut self, id: u32) -> u32 {
         let soil_id = self.get_destination("seed-to-soil", id);
         let fertilizer_id = self.get_destination("soil-to-fertilizer", soil_id);
         let water_id = self.get_destination("fertilizer-to-water", fertilizer_id);
@@ -63,6 +93,28 @@ impl Solver {
 
         location_id
     }
+
+    // pub fn get_soil_from_seed(&mut self, id: u32) -> u32 {
+    //     if self.map_soil_from_seed.len() == 0 {
+    //         let entries = self.parse_map_data("seed-to-soil").unwrap().1;
+    //         let max_entries_tuple = entries.iter().max_by_key(|x| x.1 + x.2).unwrap();
+    //         let max_entries = max_entries_tuple.1 + max_entries_tuple.2;
+    //         for slot in 0..=max_entries {
+    //             self.map_soil_from_seed.push(slot)
+    //         }
+    //         entries.iter().for_each(|entry| {
+    //             let stop_num = entry.1 + entry.2;
+    //             for (indx, update) in (entry.1..stop_num).into_iter().enumerate() {
+    //                 self.map_soil_from_seed[update as usize] = entry.0 + indx as u32
+    //             }
+    //         });
+    //     }
+    //     if id > self.map_soil_from_seed.len() as u32 {
+    //         id
+    //     } else {
+    //         self.map_soil_from_seed[id as usize]
+    //     }
+    // }
 
     // pub fn fertilizer_to_water_map(&self) -> Vec<(u32, u32, u32)> {
     //     self.parse_map_data("fertilizer-to-water map:").unwrap().1
@@ -116,7 +168,7 @@ impl Solver {
         Ok((source, seeds))
     }
 
-    pub fn solve(&self) -> u32 {
+    pub fn solve(&mut self) -> u32 {
         self.seeds()
             .into_iter()
             .map(|id| self.get_seed_location(id))
@@ -230,11 +282,11 @@ mod tests {
     }
 
     // #[test]
-    // fn fertilizer_to_water_map() {
+    // fn get_soil_from_seed() {
     //     let mut s = Solver::new();
     //     s.input = Some(include_str!("../input-test.txt").to_string());
-    //     let left = vec![(49, 53, 8), (0, 11, 42), (42, 0, 7), (57, 7, 4)];
-    //     let right = s.fertilizer_to_water_map();
+    //     let left = 81;
+    //     let right = s.get_soil_from_seed(79);
     //     assert_eq!(left, right);
     // }
 
