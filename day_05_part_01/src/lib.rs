@@ -23,21 +23,28 @@ impl Solver {
         let entries = self.parse_map_data(map_type).unwrap().1;
         let max_entries_tuple = entries.iter().max_by_key(|x| x.1 + x.2).unwrap();
         let max_entries = max_entries_tuple.1 + max_entries_tuple.2;
-        let mut crosswalk: Vec<u32> = vec![];
-        for slot in 0..=max_entries {
-            crosswalk.push(slot)
-        }
-
-        entries.iter().for_each(|entry| {
-            let stop_num = entry.1 + entry.2;
-            for (indx, update) in (entry.1..=stop_num).into_iter().enumerate() {
-                crosswalk[update as usize] = entry.0 + indx as u32
+        if id > max_entries {
+            id
+        } else {
+            let mut crosswalk: Vec<u32> = vec![];
+            for slot in 0..=max_entries {
+                crosswalk.push(slot)
             }
-        });
+            entries.iter().for_each(|entry| {
+                let stop_num = entry.1 + entry.2;
+                for (indx, update) in (entry.1..=stop_num).into_iter().enumerate() {
+                    crosswalk[update as usize] = entry.0 + indx as u32
+                }
+            });
+            crosswalk[id as usize]
+        }
+    }
 
-        // dbg!(crosswalk);
-        crosswalk[id as usize]
-        // 81
+    pub fn get_seed_location(&self, id: u32) -> u32 {
+        let soil_id = self.get_destination("seed-to-soil", id);
+        let fertilizer_id = self.get_destination("soil-to-fertilizer", soil_id);
+        dbg!(fertilizer_id);
+        82
     }
 
     // pub fn fertilizer_to_water_map(&self) -> Vec<(u32, u32, u32)> {
@@ -130,6 +137,15 @@ mod tests {
     }
 
     #[test]
+    fn get_destination_from_beyond_last_mod() {
+        let mut s = Solver::new();
+        s.input = Some(include_str!("../input-test.txt").to_string());
+        let left = 1000;
+        let right = s.get_destination("seed-to-soil", 1000);
+        assert_eq!(left, right);
+    }
+
+    #[test]
     fn get_destination_without_changes_2() {
         let mut s = Solver::new();
         s.input = Some(include_str!("../input-test.txt").to_string());
@@ -153,6 +169,15 @@ mod tests {
         s.input = Some(include_str!("../input-test.txt").to_string());
         let left = 57;
         let right = s.get_destination("seed-to-soil", 55);
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn get_seed_location() {
+        let mut s = Solver::new();
+        s.input = Some(include_str!("../input-test.txt").to_string());
+        let left = 82;
+        let right = s.get_seed_location(79);
         assert_eq!(left, right);
     }
 
