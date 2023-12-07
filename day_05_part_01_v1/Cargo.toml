@@ -1,0 +1,17 @@
+[package]
+name = "day_05_part_01_v1"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+nom = { workspace = true }
+
+[dev-dependencies]
+divan = { workspace = true }
+
+[[bench]]
+name = "benchmark"
+harness = false
+
+[lib]
+doctest = false
