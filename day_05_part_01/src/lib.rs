@@ -48,17 +48,19 @@ impl Solver {
         let temperature_id = self.get_destination("light-to-temperature", light_id);
         let humidity_id = self.get_destination("temperature-to-humidity", temperature_id);
         let location_id = self.get_destination("humidity-to-location", humidity_id);
-        dbg!(format!(
-            "{} {} {} {} {} {} {} {}",
-            id,
-            soil_id,
-            fertilizer_id,
-            water_id,
-            light_id,
-            temperature_id,
-            humidity_id,
-            location_id
-        ));
+
+        // dbg!(format!(
+        //     "{} {} {} {} {} {} {} {}",
+        //     id,
+        //     soil_id,
+        //     fertilizer_id,
+        //     water_id,
+        //     light_id,
+        //     temperature_id,
+        //     humidity_id,
+        //     location_id
+        // ));
+
         location_id
     }
 
@@ -78,9 +80,9 @@ impl Solver {
     //     self.parse_map_data("seed-to-soil map:").unwrap().1
     // }
 
-    // pub fn seeds(&self) -> Vec<u32> {
-    //     self.parse_seeds().unwrap().1
-    // }
+    pub fn seeds(&self) -> Vec<u32> {
+        self.parse_seeds().unwrap().1
+    }
 
     // pub fn soil_to_fertilizer_map(&self) -> Vec<(u32, u32, u32)> {
     //     self.parse_map_data("soil-to-fertilizer map:").unwrap().1
@@ -115,7 +117,11 @@ impl Solver {
     }
 
     pub fn solve(&self) -> u32 {
-        35
+        self.seeds()
+            .into_iter()
+            .map(|id| self.get_seed_location(id))
+            .min()
+            .unwrap()
     }
 
     // pub fn temperature_to_humidity_map(&self) -> Vec<(u32, u32, u32)> {
@@ -202,6 +208,24 @@ mod tests {
         s.input = Some(include_str!("../input-test.txt").to_string());
         let left = 43;
         let right = s.get_seed_location(14);
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn get_seed_location_3() {
+        let mut s = Solver::new();
+        s.input = Some(include_str!("../input-test.txt").to_string());
+        let left = 86;
+        let right = s.get_seed_location(55);
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn get_seed_location_4() {
+        let mut s = Solver::new();
+        s.input = Some(include_str!("../input-test.txt").to_string());
+        let left = 35;
+        let right = s.get_seed_location(13);
         assert_eq!(left, right);
     }
 
