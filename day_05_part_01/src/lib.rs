@@ -19,12 +19,28 @@ impl Solver {
         Solver { input: None }
     }
 
+    pub fn fertilizer_to_water_map(&self) -> Vec<(u32, u32, u32)> {
+        self.parse_map_data("fertilizer-to-water map:").unwrap().1
+    }
+
+    pub fn humidity_to_location_map(&self) -> Vec<(u32, u32, u32)> {
+        self.parse_map_data("humidity-to-location map:").unwrap().1
+    }
+
+    pub fn light_to_temperature_map(&self) -> Vec<(u32, u32, u32)> {
+        self.parse_map_data("light-to-temperature map:").unwrap().1
+    }
+
     pub fn seed_to_soil_map(&self) -> Vec<(u32, u32, u32)> {
         self.parse_map_data("seed-to-soil map:").unwrap().1
     }
 
     pub fn seeds(&self) -> Vec<u32> {
         self.parse_seeds().unwrap().1
+    }
+
+    pub fn soil_to_fertilizer_map(&self) -> Vec<(u32, u32, u32)> {
+        self.parse_map_data("soil-to-fertilizer map:").unwrap().1
     }
 
     pub fn parse_map_data(&self, map_key: &str) -> IResult<&str, Vec<(u32, u32, u32)>> {
@@ -57,6 +73,16 @@ impl Solver {
     pub fn solve(&self) -> u32 {
         35
     }
+
+    pub fn temperature_to_humidity_map(&self) -> Vec<(u32, u32, u32)> {
+        self.parse_map_data("temperature-to-humidity map:")
+            .unwrap()
+            .1
+    }
+
+    pub fn water_to_light_map(&self) -> Vec<(u32, u32, u32)> {
+        self.parse_map_data("water-to-light map:").unwrap().1
+    }
 }
 
 #[cfg(test)]
@@ -73,11 +99,29 @@ mod tests {
     }
 
     #[test]
-    fn seeds() {
+    fn fertilizer_to_water_map() {
         let mut s = Solver::new();
         s.input = Some(include_str!("../input-test.txt").to_string());
-        let left = vec![79, 14, 55, 13];
-        let right = s.seeds();
+        let left = vec![(49, 53, 8), (0, 11, 42), (42, 0, 7), (57, 7, 4)];
+        let right = s.fertilizer_to_water_map();
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn humidity_to_location_map() {
+        let mut s = Solver::new();
+        s.input = Some(include_str!("../input-test.txt").to_string());
+        let left = vec![(60, 56, 37), (56, 93, 4)];
+        let right = s.humidity_to_location_map();
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn light_to_temperature_map() {
+        let mut s = Solver::new();
+        s.input = Some(include_str!("../input-test.txt").to_string());
+        let left = vec![(45, 77, 23), (81, 45, 19), (68, 64, 13)];
+        let right = s.light_to_temperature_map();
         assert_eq!(left, right);
     }
 
@@ -87,6 +131,42 @@ mod tests {
         s.input = Some(include_str!("../input-test.txt").to_string());
         let left = vec![(50, 98, 2), (52, 50, 48)];
         let right = s.seed_to_soil_map();
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn seeds() {
+        let mut s = Solver::new();
+        s.input = Some(include_str!("../input-test.txt").to_string());
+        let left = vec![79, 14, 55, 13];
+        let right = s.seeds();
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn soil_to_fertilizer_map() {
+        let mut s = Solver::new();
+        s.input = Some(include_str!("../input-test.txt").to_string());
+        let left = vec![(0, 15, 37), (37, 52, 2), (39, 0, 15)];
+        let right = s.soil_to_fertilizer_map();
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn temperature_to_humidity_map() {
+        let mut s = Solver::new();
+        s.input = Some(include_str!("../input-test.txt").to_string());
+        let left = vec![(0, 69, 1), (1, 0, 69)];
+        let right = s.temperature_to_humidity_map();
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn water_to_light_map() {
+        let mut s = Solver::new();
+        s.input = Some(include_str!("../input-test.txt").to_string());
+        let left = vec![(88, 18, 7), (18, 25, 70)];
+        let right = s.water_to_light_map();
         assert_eq!(left, right);
     }
 }
