@@ -13,7 +13,7 @@ use std::collections::HashMap;
 
 pub struct Solver {
     pub input: Option<String>,
-    map_soil_from_seed: Vec<u32>,
+    // map_soil_from_seed: Vec<u32>,
     maps: HashMap<String, Vec<u32>>,
 }
 
@@ -21,7 +21,7 @@ impl Solver {
     pub fn new() -> Solver {
         Solver {
             input: None,
-            map_soil_from_seed: vec![],
+            // map_soil_from_seed: vec![],
             maps: HashMap::new(),
         }
     }
