@@ -1,4 +1,4 @@
-use day_05_part_01::Solver;
+use day_05_part_01_v2::Solver;
 
 fn main() {
     let mut s = Solver::new();

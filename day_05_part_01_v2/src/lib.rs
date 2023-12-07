@@ -13,60 +13,59 @@ use std::collections::HashMap;
 
 pub struct Solver {
     pub input: Option<String>,
-    map_soil_from_seed: Vec<u32>,
     maps: HashMap<String, Vec<u32>>,
+    map_hashes: HashMap<String, HashMap<u32, u32>>,
 }
 
 impl Solver {
     pub fn new() -> Solver {
         Solver {
             input: None,
-            map_soil_from_seed: vec![],
             maps: HashMap::new(),
+            map_hashes: HashMap::new(),
         }
     }
 
     pub fn get_destination(&mut self, map_type: &str, id: u32) -> u32 {
-        if !self.maps.contains_key(map_type) {
+        if !self.map_hashes.contains_key(map_type) {
             dbg!(format!("Making: {map_type}"));
+            let mut new_map_hashes = HashMap::new();
             let entries = self.parse_map_data(map_type).unwrap().1;
-            let max_entries_tuple = entries.iter().max_by_key(|x| x.1 + x.2).unwrap();
-            let max_entries = max_entries_tuple.1 + max_entries_tuple.2;
-            let mut new_map: Vec<u32> = vec![];
-            for slot in 0..=max_entries {
-                new_map.push(slot)
-            }
             entries.iter().for_each(|entry| {
                 let stop_num = entry.1 + entry.2;
                 for (indx, update) in (entry.1..stop_num).into_iter().enumerate() {
-                    new_map[update as usize] = entry.0 + indx as u32
+                    new_map_hashes.insert(update, entry.0 + indx as u32);
                 }
             });
-            self.maps.insert(map_type.to_string(), new_map);
-        }
-        if id as usize > self.maps.get(map_type).unwrap().len() {
-            id
-        } else {
-            self.maps.get(map_type).unwrap()[id as usize]
+            self.map_hashes.insert(map_type.to_string(), new_map_hashes);
         }
 
-        // let entries = self.parse_map_data(map_type).unwrap().1;
-        // let max_entries_tuple = entries.iter().max_by_key(|x| x.1 + x.2).unwrap();
-        // let max_entries = max_entries_tuple.1 + max_entries_tuple.2;
-        // if id > max_entries {
-        //     id
-        // } else {
-        //     let mut crosswalk: Vec<u32> = vec![];
+        match self.map_hashes.get(map_type).unwrap().get(&id) {
+            Some(number) => *number,
+            None => id,
+        }
+
+        // if !self.maps.contains_key(map_type) {
+        //     // dbg!(format!("Making: {map_type}"));
+        //     let entries = self.parse_map_data(map_type).unwrap().1;
+        //     let max_entries_tuple = entries.iter().max_by_key(|x| x.1 + x.2).unwrap();
+        //     let max_entries = max_entries_tuple.1 + max_entries_tuple.2;
+        //     let mut new_map: Vec<u32> = vec![];
         //     for slot in 0..=max_entries {
-        //         crosswalk.push(slot)
+        //         new_map.push(slot)
         //     }
         //     entries.iter().for_each(|entry| {
         //         let stop_num = entry.1 + entry.2;
         //         for (indx, update) in (entry.1..stop_num).into_iter().enumerate() {
-        //             crosswalk[update as usize] = entry.0 + indx as u32
+        //             new_map[update as usize] = entry.0 + indx as u32
         //         }
         //     });
-        //     crosswalk[id as usize]
+        //     self.maps.insert(map_type.to_string(), new_map);
+        // }
+        // if id as usize > self.maps.get(map_type).unwrap().len() {
+        //     id
+        // } else {
+        //     self.maps.get(map_type).unwrap()[id as usize]
         // }
     }
 
@@ -78,67 +77,12 @@ impl Solver {
         let temperature_id = self.get_destination("light-to-temperature", light_id);
         let humidity_id = self.get_destination("temperature-to-humidity", temperature_id);
         let location_id = self.get_destination("humidity-to-location", humidity_id);
-
-        // dbg!(format!(
-        //     "{} {} {} {} {} {} {} {}",
-        //     id,
-        //     soil_id,
-        //     fertilizer_id,
-        //     water_id,
-        //     light_id,
-        //     temperature_id,
-        //     humidity_id,
-        //     location_id
-        // ));
-
         location_id
     }
-
-    // pub fn get_soil_from_seed(&mut self, id: u32) -> u32 {
-    //     if self.map_soil_from_seed.len() == 0 {
-    //         let entries = self.parse_map_data("seed-to-soil").unwrap().1;
-    //         let max_entries_tuple = entries.iter().max_by_key(|x| x.1 + x.2).unwrap();
-    //         let max_entries = max_entries_tuple.1 + max_entries_tuple.2;
-    //         for slot in 0..=max_entries {
-    //             self.map_soil_from_seed.push(slot)
-    //         }
-    //         entries.iter().for_each(|entry| {
-    //             let stop_num = entry.1 + entry.2;
-    //             for (indx, update) in (entry.1..stop_num).into_iter().enumerate() {
-    //                 self.map_soil_from_seed[update as usize] = entry.0 + indx as u32
-    //             }
-    //         });
-    //     }
-    //     if id > self.map_soil_from_seed.len() as u32 {
-    //         id
-    //     } else {
-    //         self.map_soil_from_seed[id as usize]
-    //     }
-    // }
-
-    // pub fn fertilizer_to_water_map(&self) -> Vec<(u32, u32, u32)> {
-    //     self.parse_map_data("fertilizer-to-water map:").unwrap().1
-    // }
-
-    // pub fn humidity_to_location_map(&self) -> Vec<(u32, u32, u32)> {
-    //     self.parse_map_data("humidity-to-location map:").unwrap().1
-    // }
-
-    // pub fn light_to_temperature_map(&self) -> Vec<(u32, u32, u32)> {
-    //     self.parse_map_data("light-to-temperature map:").unwrap().1
-    // }
-
-    // pub fn seed_to_soil_map(&self) -> Vec<(u32, u32, u32)> {
-    //     self.parse_map_data("seed-to-soil map:").unwrap().1
-    // }
 
     pub fn seeds(&self) -> Vec<u32> {
         self.parse_seeds().unwrap().1
     }
-
-    // pub fn soil_to_fertilizer_map(&self) -> Vec<(u32, u32, u32)> {
-    //     self.parse_map_data("soil-to-fertilizer map:").unwrap().1
-    // }
 
     pub fn parse_map_data(&self, map_key: &str) -> IResult<&str, Vec<(u32, u32, u32)>> {
         let (source, _) =
@@ -175,16 +119,6 @@ impl Solver {
             .min()
             .unwrap()
     }
-
-    // pub fn temperature_to_humidity_map(&self) -> Vec<(u32, u32, u32)> {
-    //     self.parse_map_data("temperature-to-humidity map:")
-    //         .unwrap()
-    //         .1
-    // }
-
-    // pub fn water_to_light_map(&self) -> Vec<(u32, u32, u32)> {
-    //     self.parse_map_data("water-to-light map:").unwrap().1
-    // }
 }
 
 #[cfg(test)]
@@ -280,76 +214,4 @@ mod tests {
         let right = s.get_seed_location(13);
         assert_eq!(left, right);
     }
-
-    // #[test]
-    // fn get_soil_from_seed() {
-    //     let mut s = Solver::new();
-    //     s.input = Some(include_str!("../input-test.txt").to_string());
-    //     let left = 81;
-    //     let right = s.get_soil_from_seed(79);
-    //     assert_eq!(left, right);
-    // }
-
-    // #[test]
-    // fn humidity_to_location_map() {
-    //     let mut s = Solver::new();
-    //     s.input = Some(include_str!("../input-test.txt").to_string());
-    //     let left = vec![(60, 56, 37), (56, 93, 4)];
-    //     let right = s.humidity_to_location_map();
-    //     assert_eq!(left, right);
-    // }
-
-    // #[test]
-    // fn light_to_temperature_map() {
-    //     let mut s = Solver::new();
-    //     s.input = Some(include_str!("../input-test.txt").to_string());
-    //     let left = vec![(45, 77, 23), (81, 45, 19), (68, 64, 13)];
-    //     let right = s.light_to_temperature_map();
-    //     assert_eq!(left, right);
-    // }
-
-    // #[test]
-    // fn seed_to_soil_map() {
-    //     let mut s = Solver::new();
-    //     s.input = Some(include_str!("../input-test.txt").to_string());
-    //     let left = vec![(50, 98, 2), (52, 50, 48)];
-    //     let right = s.seed_to_soil_map();
-    //     assert_eq!(left, right);
-    // }
-
-    // #[test]
-    // fn seeds() {
-    //     let mut s = Solver::new();
-    //     s.input = Some(include_str!("../input-test.txt").to_string());
-    //     let left = vec![79, 14, 55, 13];
-    //     let right = s.seeds();
-    //     assert_eq!(left, right);
-    // }
-
-    // #[test]
-    // fn soil_to_fertilizer_map() {
-    //     let mut s = Solver::new();
-    //     s.input = Some(include_str!("../input-test.txt").to_string());
-    //     let left = vec![(0, 15, 37), (37, 52, 2), (39, 0, 15)];
-    //     let right = s.soil_to_fertilizer_map();
-    //     assert_eq!(left, right);
-    // }
-
-    // #[test]
-    // fn temperature_to_humidity_map() {
-    //     let mut s = Solver::new();
-    //     s.input = Some(include_str!("../input-test.txt").to_string());
-    //     let left = vec![(0, 69, 1), (1, 0, 69)];
-    //     let right = s.temperature_to_humidity_map();
-    //     assert_eq!(left, right);
-    // }
-
-    // #[test]
-    // fn water_to_light_map() {
-    //     let mut s = Solver::new();
-    //     s.input = Some(include_str!("../input-test.txt").to_string());
-    //     let left = vec![(88, 18, 7), (18, 25, 70)];
-    //     let right = s.water_to_light_map();
-    //     assert_eq!(left, right);
-    // }
 }
