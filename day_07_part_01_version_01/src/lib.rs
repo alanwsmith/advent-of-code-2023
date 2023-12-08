@@ -56,6 +56,31 @@ impl Hand {
         }
     }
 
+    pub fn kind_strength(&self) -> u32 {
+        let mut counts = vec![0 as u32; 14];
+        self.cards().iter().for_each(|c| counts[*c as usize] += 1);
+        let mut report: Vec<_> = counts
+            .iter()
+            .filter(|e| if e > &&1 { true } else { false })
+            .collect();
+        report.sort();
+        if report == vec![&5] {
+            7
+        } else if report == vec![&4] {
+            6
+        } else if report == vec![&2, &3] {
+            5
+        } else if report == vec![&3] {
+            4
+        } else if report == vec![&2, &2] {
+            3
+        } else if report == vec![&2] {
+            2
+        } else {
+            1
+        }
+    }
+
     pub fn parse_cards(&self) -> IResult<&str, Vec<u32>> {
         let (source, results) = many1(alt((
             tag("A").map(|_| 14),
@@ -126,17 +151,31 @@ mod test {
         assert_eq!(left, right);
     }
 
+    // #[rstest]
+    // #[case("12345 1", Kind::HighCard)]
+    // #[case("11345 1", Kind::OnePair)]
+    // #[case("11335 1", Kind::TwoPair)]
+    // #[case("11145 1", Kind::ThreeOfAKind)]
+    // #[case("11155 1", Kind::FullHouse)]
+    // #[case("11115 1", Kind::FourOfAKind)]
+    // #[case("11111 1", Kind::FiveOfAKind)]
+    // fn kind_test(#[case] input: &str, #[case] left: Kind) {
+    //     let h = Hand::new_from(input);
+    //     let right = h.kind();
+    //     assert_eq!(left, right);
+    // }
+
     #[rstest]
-    #[case("12345 1", Kind::HighCard)]
-    #[case("11345 1", Kind::OnePair)]
-    #[case("11335 1", Kind::TwoPair)]
-    #[case("11145 1", Kind::ThreeOfAKind)]
-    #[case("11155 1", Kind::FullHouse)]
-    #[case("11115 1", Kind::FourOfAKind)]
-    #[case("11111 1", Kind::FiveOfAKind)]
-    fn kind_test(#[case] input: &str, #[case] left: Kind) {
+    #[case("12345 1", 1)]
+    #[case("11345 1", 2)]
+    #[case("11335 1", 3)]
+    #[case("11145 1", 4)]
+    #[case("11155 1", 5)]
+    #[case("11115 1", 6)]
+    #[case("11111 1", 7)]
+    fn kind_strength_test(#[case] input: &str, #[case] left: u32) {
         let h = Hand::new_from(input);
-        let right = h.kind();
+        let right = h.kind_strength();
         assert_eq!(left, right);
     }
 }
