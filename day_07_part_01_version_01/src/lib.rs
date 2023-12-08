@@ -1,30 +1,26 @@
 use nom::branch::alt;
 use nom::bytes::complete::tag;
+use nom::bytes::complete::take_until;
+use nom::character::complete::digit1;
 use nom::character::complete::one_of;
+use nom::character::complete::space1;
 use nom::multi::many1;
+use nom::sequence::pair;
+use nom::sequence::preceded;
 use nom::IResult;
 use nom::Parser;
 
 #[derive(Debug, PartialEq)]
-pub enum Kind {
-    FiveOfAKind,
-    FourOfAKind,
-    FullHouse,
-    ThreeOfAKind,
-    TwoPair,
-    OnePair,
-    HighCard,
-}
-
-#[derive(Debug, PartialEq)]
 pub struct Hand {
     pub raw_string: Option<String>,
+    pub rank: u128,
 }
 
 impl Hand {
     pub fn new_from(raw_string: &str) -> Hand {
         Hand {
             raw_string: Some(raw_string.to_string()),
+            rank: 0,
         }
     }
 
@@ -43,31 +39,6 @@ impl Hand {
         strength += self.kind_strength();
         strength
     }
-
-    // pub fn kind(&self) -> Kind {
-    //     let mut counts = vec![0 as u32; 14];
-    //     self.cards().iter().for_each(|c| counts[*c as usize] += 1);
-    //     let mut report: Vec<_> = counts
-    //         .iter()
-    //         .filter(|e| if e > &&1 { true } else { false })
-    //         .collect();
-    //     report.sort();
-    //     if report == vec![&5] {
-    //         Kind::FiveOfAKind
-    //     } else if report == vec![&4] {
-    //         Kind::FourOfAKind
-    //     } else if report == vec![&2, &3] {
-    //         Kind::FullHouse
-    //     } else if report == vec![&3] {
-    //         Kind::ThreeOfAKind
-    //     } else if report == vec![&2, &2] {
-    //         Kind::TwoPair
-    //     } else if report == vec![&2] {
-    //         Kind::OnePair
-    //     } else {
-    //         Kind::HighCard
-    //     }
-    // }
 
     pub fn kind_strength(&self) -> u128 {
         let mut counts = vec![0 as u128; 15];
@@ -105,6 +76,17 @@ impl Hand {
         )))(self.raw_string.as_ref().unwrap().as_str())?;
         Ok((source, results))
     }
+
+    pub fn parse_bid(&self) -> IResult<&str, u128> {
+        let (source, results) = preceded(pair(take_until(" "), space1), digit1)(
+            self.raw_string.as_ref().unwrap().as_str(),
+        )?;
+        Ok((source, results.parse().unwrap()))
+    }
+
+    pub fn points(&self) -> u128 {
+        self.rank * self.parse_bid().unwrap().1
+    }
 }
 
 pub struct Solver {
@@ -128,7 +110,10 @@ impl Solver {
             })
             .collect();
         hands.sort_by(|a, b| a.hand_strength().cmp(&b.hand_strength()));
-        dbg!(&hands);
+        for (rank, hand) in hands.iter_mut().enumerate() {
+            hand.rank = (rank + 1) as u128;
+        }
+        // dbg!(&hands);
         hands
     }
 
@@ -163,11 +148,20 @@ mod test {
     #[case(include_str!("../input-test.txt"), 5)]
     fn hands_test(#[case] input: &str, #[case] left: u32) {
         let mut s = Solver::new();
-        // s.input = Some(include_str!("../input-test.txt").to_string());
         s.input = Some(input.to_string());
         let right = s.hands().len() as u32;
         assert_eq!(left, right);
     }
+
+    // #[rstest]
+    // #[case(include_str!("../input-test.txt"), 5)]
+    // fn rank_hands_test(#[case] input: &str, #[case] left: u32) {
+    //     let mut s = Solver::new();
+    //     s.input = Some(input.to_string());
+    //     s.rank_hands();
+    //     let right = s.hands()[0];
+    //     assert_eq!(left, right);
+    // }
 
     // #[rstest]
     // #[case("12345 1", Kind::HighCard)]
@@ -202,6 +196,15 @@ mod test {
     fn hand_strength_test(#[case] input: &str, #[case] left: u128) {
         let h = Hand::new_from(input);
         let right = h.hand_strength();
+        assert_eq!(left, right);
+    }
+
+    #[rstest]
+    #[case("QQQJA 483", 5, 2415)]
+    fn hand_points_test(#[case] input: &str, #[case] rank: u128, #[case] left: u128) {
+        let mut h = Hand::new_from(input);
+        h.rank = rank;
+        let right = h.points();
         assert_eq!(left, right);
     }
 }
