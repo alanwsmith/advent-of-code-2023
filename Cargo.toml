@@ -6,4 +6,5 @@ members = ["day_*"]
 divan = "0.1.4"
 nom = "7.1.3"
 regex = "1.10.2"
+rstest = "0.18.2"
 
