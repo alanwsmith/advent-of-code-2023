@@ -152,30 +152,6 @@ mod test {
         assert_eq!(left, right);
     }
 
-    // #[rstest]
-    // #[case(include_str!("../input-test.txt"), 5)]
-    // fn rank_hands_test(#[case] input: &str, #[case] left: u32) {
-    //     let mut s = Solver::new();
-    //     s.input = Some(input.to_string());
-    //     s.rank_hands();
-    //     let right = s.hands()[0];
-    //     assert_eq!(left, right);
-    // }
-
-    // #[rstest]
-    // #[case("12345 1", Kind::HighCard)]
-    // #[case("11345 1", Kind::OnePair)]
-    // #[case("11335 1", Kind::TwoPair)]
-    // #[case("11145 1", Kind::ThreeOfAKind)]
-    // #[case("11155 1", Kind::FullHouse)]
-    // #[case("11115 1", Kind::FourOfAKind)]
-    // #[case("11111 1", Kind::FiveOfAKind)]
-    // fn kind_test(#[case] input: &str, #[case] left: Kind) {
-    //     let h = Hand::new_from(input);
-    //     let right = h.kind();
-    //     assert_eq!(left, right);
-    // }
-
     #[rstest]
     #[case("12345 1", 10000000000)]
     #[case("11345 1", 20000000000)]
