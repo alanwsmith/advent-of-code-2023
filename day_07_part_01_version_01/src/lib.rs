@@ -31,33 +31,45 @@ impl Hand {
         self.parse_cards().unwrap().1
     }
 
-    pub fn kind(&self) -> Kind {
-        let mut counts = vec![0 as u32; 14];
-        self.cards().iter().for_each(|c| counts[*c as usize] += 1);
-        let mut report: Vec<_> = counts
-            .iter()
-            .filter(|e| if e > &&1 { true } else { false })
-            .collect();
-        report.sort();
-        if report == vec![&5] {
-            Kind::FiveOfAKind
-        } else if report == vec![&4] {
-            Kind::FourOfAKind
-        } else if report == vec![&2, &3] {
-            Kind::FullHouse
-        } else if report == vec![&3] {
-            Kind::ThreeOfAKind
-        } else if report == vec![&2, &2] {
-            Kind::TwoPair
-        } else if report == vec![&2] {
-            Kind::OnePair
-        } else {
-            Kind::HighCard
-        }
+    pub fn hand_strength(&self) -> u128 {
+        let cards = self.cards();
+        let mut strength = 0;
+        strength += cards[4] as u128;
+        strength += (cards[3] * 100) as u128;
+        strength += (cards[2] * 10000) as u128;
+        strength += (cards[1] * 1000000) as u128;
+        strength += (cards[0] * 100000000) as u128;
+        strength += self.kind_strength();
+        strength
     }
 
-    pub fn kind_strength(&self) -> u32 {
-        let mut counts = vec![0 as u32; 14];
+    // pub fn kind(&self) -> Kind {
+    //     let mut counts = vec![0 as u32; 14];
+    //     self.cards().iter().for_each(|c| counts[*c as usize] += 1);
+    //     let mut report: Vec<_> = counts
+    //         .iter()
+    //         .filter(|e| if e > &&1 { true } else { false })
+    //         .collect();
+    //     report.sort();
+    //     if report == vec![&5] {
+    //         Kind::FiveOfAKind
+    //     } else if report == vec![&4] {
+    //         Kind::FourOfAKind
+    //     } else if report == vec![&2, &3] {
+    //         Kind::FullHouse
+    //     } else if report == vec![&3] {
+    //         Kind::ThreeOfAKind
+    //     } else if report == vec![&2, &2] {
+    //         Kind::TwoPair
+    //     } else if report == vec![&2] {
+    //         Kind::OnePair
+    //     } else {
+    //         Kind::HighCard
+    //     }
+    // }
+
+    pub fn kind_strength(&self) -> u128 {
+        let mut counts = vec![0 as u128; 14];
         self.cards().iter().for_each(|c| counts[*c as usize] += 1);
         let mut report: Vec<_> = counts
             .iter()
@@ -65,19 +77,19 @@ impl Hand {
             .collect();
         report.sort();
         if report == vec![&5] {
-            7
+            70000000000
         } else if report == vec![&4] {
-            6
+            60000000000
         } else if report == vec![&2, &3] {
-            5
+            50000000000
         } else if report == vec![&3] {
-            4
+            40000000000
         } else if report == vec![&2, &2] {
-            3
+            30000000000
         } else if report == vec![&2] {
-            2
+            20000000000
         } else {
-            1
+            10000000000
         }
     }
 
@@ -166,16 +178,24 @@ mod test {
     // }
 
     #[rstest]
-    #[case("12345 1", 1)]
-    #[case("11345 1", 2)]
-    #[case("11335 1", 3)]
-    #[case("11145 1", 4)]
-    #[case("11155 1", 5)]
-    #[case("11115 1", 6)]
-    #[case("11111 1", 7)]
-    fn kind_strength_test(#[case] input: &str, #[case] left: u32) {
+    #[case("12345 1", 10000000000)]
+    #[case("11345 1", 20000000000)]
+    #[case("11335 1", 30000000000)]
+    #[case("11145 1", 40000000000)]
+    #[case("11155 1", 50000000000)]
+    #[case("11115 1", 60000000000)]
+    #[case("11111 1", 70000000000)]
+    fn kind_strength_test(#[case] input: &str, #[case] left: u128) {
         let h = Hand::new_from(input);
         let right = h.kind_strength();
+        assert_eq!(left, right);
+    }
+
+    #[rstest]
+    #[case("12345 1", 10102030405)]
+    fn hand_strength_test(#[case] input: &str, #[case] left: u128) {
+        let h = Hand::new_from(input);
+        let right = h.hand_strength();
         assert_eq!(left, right);
     }
 }
