@@ -16,6 +16,7 @@ pub enum Kind {
     HighCard,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Hand {
     pub raw_string: Option<String>,
 }
@@ -69,7 +70,7 @@ impl Hand {
     // }
 
     pub fn kind_strength(&self) -> u128 {
-        let mut counts = vec![0 as u128; 14];
+        let mut counts = vec![0 as u128; 15];
         self.cards().iter().for_each(|c| counts[*c as usize] += 1);
         let mut report: Vec<_> = counts
             .iter()
@@ -116,7 +117,8 @@ impl Solver {
     }
 
     pub fn hands(&self) -> Vec<Hand> {
-        self.input
+        let mut hands: Vec<Hand> = self
+            .input
             .as_ref()
             .unwrap()
             .lines()
@@ -124,7 +126,10 @@ impl Solver {
                 let h = Hand::new_from(l);
                 h
             })
-            .collect()
+            .collect();
+        hands.sort_by(|a, b| a.hand_strength().cmp(&b.hand_strength()));
+        dbg!(&hands);
+        hands
     }
 
     pub fn solve(&self) -> u32 {
@@ -155,9 +160,10 @@ mod test {
     }
 
     #[rstest]
-    #[case("32T3K 765\nT55J5 684", 2)]
+    #[case(include_str!("../input-test.txt"), 5)]
     fn hands_test(#[case] input: &str, #[case] left: u32) {
         let mut s = Solver::new();
+        // s.input = Some(include_str!("../input-test.txt").to_string());
         s.input = Some(input.to_string());
         let right = s.hands().len() as u32;
         assert_eq!(left, right);
