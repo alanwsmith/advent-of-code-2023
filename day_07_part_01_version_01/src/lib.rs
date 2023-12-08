@@ -5,6 +5,17 @@ use nom::multi::many1;
 use nom::IResult;
 use nom::Parser;
 
+#[derive(Debug, PartialEq)]
+pub enum Kind {
+    FiveOfAKind,
+    FourOfAKind,
+    FullHouse,
+    ThreeOfAKind,
+    TwoPair,
+    OnePair,
+    HighCard,
+}
+
 pub struct Hand {
     pub raw_string: Option<String>,
 }
@@ -18,6 +29,31 @@ impl Hand {
 
     pub fn cards(&self) -> Vec<u32> {
         self.parse_cards().unwrap().1
+    }
+
+    pub fn kind(&self) -> Kind {
+        let mut counts = vec![0 as u32; 14];
+        self.cards().iter().for_each(|c| counts[*c as usize] += 1);
+        let mut report: Vec<_> = counts
+            .iter()
+            .filter(|e| if e > &&1 { true } else { false })
+            .collect();
+        report.sort();
+        if report == vec![&5] {
+            Kind::FiveOfAKind
+        } else if report == vec![&4] {
+            Kind::FourOfAKind
+        } else if report == vec![&2, &3] {
+            Kind::FullHouse
+        } else if report == vec![&3] {
+            Kind::ThreeOfAKind
+        } else if report == vec![&2, &2] {
+            Kind::TwoPair
+        } else if report == vec![&2] {
+            Kind::OnePair
+        } else {
+            Kind::HighCard
+        }
     }
 
     pub fn parse_cards(&self) -> IResult<&str, Vec<u32>> {
@@ -40,6 +76,18 @@ pub struct Solver {
 impl Solver {
     pub fn new() -> Solver {
         Solver { input: None }
+    }
+
+    pub fn hands(&self) -> Vec<Hand> {
+        self.input
+            .as_ref()
+            .unwrap()
+            .lines()
+            .map(|l| {
+                let h = Hand::new_from(l);
+                h
+            })
+            .collect()
     }
 
     pub fn solve(&self) -> u32 {
@@ -69,19 +117,27 @@ mod test {
         assert_eq!(left, right);
     }
 
-    // #[rstest]
-    // #[case("T55J5 684", Ok(("", vec![3, 2, 10, 3, 13])))]
-    // fn hand_test(#[case] input: &str, #[case] left: IResult<&str, Vec<u32>>) {
-    //     let s = Solver::new();
-    //     let right = s.cards(input);
-    //     assert_eq!(left, right);
-    // }
+    #[rstest]
+    #[case("32T3K 765\nT55J5 684", 2)]
+    fn hands_test(#[case] input: &str, #[case] left: u32) {
+        let mut s = Solver::new();
+        s.input = Some(input.to_string());
+        let right = s.hands().len() as u32;
+        assert_eq!(left, right);
+    }
 
-    // #[rstest]
-    // #[case("a", "a")]
-    // fn run_test(#[case] input: &str, #[case] expected: &str) {
-    //     let results = input;
-    //     assert_eq!(expected, input);
-    // }
+    #[rstest]
+    #[case("12345 1", Kind::HighCard)]
+    #[case("11345 1", Kind::OnePair)]
+    #[case("11335 1", Kind::TwoPair)]
+    #[case("11145 1", Kind::ThreeOfAKind)]
+    #[case("11155 1", Kind::FullHouse)]
+    #[case("11115 1", Kind::FourOfAKind)]
+    #[case("11111 1", Kind::FiveOfAKind)]
+    fn kind_test(#[case] input: &str, #[case] left: Kind) {
+        let h = Hand::new_from(input);
+        let right = h.kind();
+        assert_eq!(left, right);
+    }
 }
 
