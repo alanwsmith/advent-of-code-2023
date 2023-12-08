@@ -113,12 +113,11 @@ impl Solver {
         for (rank, hand) in hands.iter_mut().enumerate() {
             hand.rank = (rank + 1) as u128;
         }
-        // dbg!(&hands);
         hands
     }
 
-    pub fn solve(&self) -> u32 {
-        6440
+    pub fn solve(&self) -> u128 {
+        self.hands().iter().fold(0, |acc, hand| acc + hand.points())
     }
 }
 
